@@ -12,6 +12,8 @@ const auth = getAuth(app);
 function App() {
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
+  const [validated, setValidated] = useState(false);
+  const [error, setError] = useState('');
 
   const handleEmaialBlur = event => {
     setEmail(event.target.value);
@@ -19,7 +21,23 @@ function App() {
   const handlePassBlur = event => {
     setPass(event.target.value);
   }
+
+
   const handleSubmit = event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.stopPropagation();
+      return;
+    }
+
+    if (!/(?=.*[0-9])/.test(pass)) {
+      setError('password should contain atleast one number between 0-9');
+      return;
+    }
+    setValidated(true);
+    setError('password okey');
+
     createUserWithEmailAndPassword(auth, email, pass)
       .then(result => {
         const user = result.user;
@@ -28,26 +46,38 @@ function App() {
       .catch(error => {
         console.error('submit error')
       })
-    event.preventDefault(); //for not reload to click at submit
+    // event.preventDefault(); //for not reload to click at submit
   }
   return (
     <div className="App">
       <div className="registrtion w-50 mx-auto mt-5" >
         <h2 className='text-primary'>Please Register !!</h2>
-        <Form onSubmit={handleSubmit}>
+        <Form noValidate validated={validated}
+          onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>Email address</Form.Label>
-            <Form.Control onBlur={handleEmaialBlur} type="email" placeholder="Enter email" />
+            <Form.Control onBlur={handleEmaialBlur} type="email" placeholder="Enter email" required />
             <Form.Text className="text-muted">
               We'll never share your email with anyone else.
             </Form.Text>
+            <Form.Control.Feedback type="invalid">
+              Please provide a valid email.
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="formBasicPassword">
             <Form.Label>Password</Form.Label>
-            <Form.Control onBlur={handlePassBlur} type="password" placeholder="Password" />
+            <Form.Control
+              onBlur={handlePassBlur} type="password"
+              placeholder="Password"
+              required />
+            <Form.Control.Feedback type="invalid">
+              Please provide a valid password.
+            </Form.Control.Feedback>
           </Form.Group>
-          <Button variant="primary" type="submit">
+          <p className='text-danger'>{error}</p>
+          <Button variant="primary"
+            type="submit">
             Submit
           </Button>
         </Form>
